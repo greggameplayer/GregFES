@@ -1,2 +1,2 @@
 # GregFES
-An app which can encrypt files written in c#
+An app which can encrypt and decrypt files written in c#
