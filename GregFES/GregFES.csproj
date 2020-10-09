@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Version>0.0.0</Version>
+    <Configurations>Debug;Release;Debug and Test;Release and Test</Configurations>
+    <ApplicationIcon>key.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="key.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="key.ico" />
+  </ItemGroup>
+
+</Project>

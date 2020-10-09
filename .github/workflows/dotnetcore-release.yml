@@ -1,0 +1,133 @@
+name: .NET Core Release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1.4.0
+      with:
+        # SDK version to use. Example: 2.2.104
+        dotnet-version: 3.1.301
+      
+    - name: Install Dotnet version tool
+      run: dotnet tool install -g dotnet-version-cli
+    
+    - name: Set environmental variable for version
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+    
+    - name: find current PR
+      uses: jwalton/gh-find-current-pr@v1
+      id: findPr
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Apply Patch
+      if: contains(steps.findPr.outputs.title, 'patch')
+      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj patch
+      continue-on-error: true
+      
+    - name: Apply Minor
+      if: contains(steps.findPr.outputs.title, 'minor')
+      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj minor
+      continue-on-error: true
+      
+    - name: Apply Major
+      if: contains(steps.findPr.outputs.title, 'major')
+      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj major
+      continue-on-error: true
+    
+    - name: Set environmental variable for new version
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+    
+    - name: git global configuration
+      run: |
+        git config --global user.name "Dotnet autobuilder"
+        git config --global user.email autobuilder@dotnet.com
+    
+    - name: commit
+      continue-on-error: true
+      run: |
+        git add /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj
+        git commit -m "Release v${{ env.PROJECT_VERSION }}"
+    
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      continue-on-error: true
+      with:
+        github_token: ${{ secrets.BOTPAT }}
+        force: true
+    
+    - name: Validate job
+      run: echo 'valid'
+  build:
+    runs-on: ubuntu-latest
+    needs: [bump-version]
+    strategy:
+      matrix:
+        os: [win-x64, win-x86]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1.4.0
+      with:
+        # SDK version to use. Example: 2.2.104
+        dotnet-version: 3.1.301
+      
+    - name: dotnet publish
+      run: cd GregFES;dotnet publish -c Release -r ${{ matrix.os }}
+    
+    - name: Install Dotnet version tool
+      run: dotnet tool install -g dotnet-version-cli
+      
+    - name: Set environmental variable for version
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+    
+    - name: find current PR
+      uses: jwalton/gh-find-current-pr@v1
+      id: findPr
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Apply Patch
+      if: contains(steps.findPr.outputs.title, 'patch')
+      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj patch
+      continue-on-error: true
+      
+    - name: Apply Minor
+      if: contains(steps.findPr.outputs.title, 'minor')
+      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj minor
+      continue-on-error: true
+      
+    - name: Apply Major
+      if: contains(steps.findPr.outputs.title, 'major')
+      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj major
+      continue-on-error: true
+    
+    - name: Set environmental variable for new version
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+    
+    - name: Install Zip dependencies
+      run: |
+        sudo apt update
+        sudo apt install zip unzip
+    
+    - name: Zip Release
+      run: |
+        zip -r /home/runner/work/GregFES/GregFES/GregFES/release.zip /home/runner/work/GregFES/GregFES/GregFES/bin/Release/netcoreapp3.1/${{ matrix.os }}/publish/
+        mv /home/runner/work/GregFES/GregFES/GregFES/release.zip /home/runner/work/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
+    
+    - name: Upload binaries to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: /home/runner/work/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
+        tag_name: v${{ env.PROJECT_VERSION }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
