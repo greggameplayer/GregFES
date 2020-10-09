@@ -20,7 +20,7 @@ jobs:
       run: dotnet tool install -g dotnet-version-cli
     
     - name: Set environmental variable for version
-      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /a/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
     
     - name: find current PR
       uses: jwalton/gh-find-current-pr@v1
@@ -30,21 +30,21 @@ jobs:
       
     - name: Apply Patch
       if: contains(steps.findPr.outputs.title, 'patch')
-      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj patch
+      run: dotnet version -f /a/GregFES/GregFES/GregFES/GregFES.csproj patch
       continue-on-error: true
       
     - name: Apply Minor
       if: contains(steps.findPr.outputs.title, 'minor')
-      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj minor
+      run: dotnet version -f /a/GregFES/GregFES/GregFES/GregFES.csproj minor
       continue-on-error: true
       
     - name: Apply Major
       if: contains(steps.findPr.outputs.title, 'major')
-      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj major
+      run: dotnet version -f /a/GregFES/GregFES/GregFES/GregFES.csproj major
       continue-on-error: true
     
     - name: Set environmental variable for new version
-      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /a/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
     
     - name: git global configuration
       run: |
@@ -54,7 +54,7 @@ jobs:
     - name: commit
       continue-on-error: true
       run: |
-        git add /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj
+        git add /a/GregFES/GregFES/GregFES/GregFES.csproj
         git commit -m "Release v${{ env.PROJECT_VERSION }}"
     
     - name: Push changes
@@ -88,7 +88,7 @@ jobs:
       run: dotnet tool install -g dotnet-version-cli
       
     - name: Set environmental variable for version
-      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /a/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
     
     - name: find current PR
       uses: jwalton/gh-find-current-pr@v1
@@ -98,36 +98,31 @@ jobs:
       
     - name: Apply Patch
       if: contains(steps.findPr.outputs.title, 'patch')
-      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj patch
+      run: dotnet version -f /a/GregFES/GregFES/GregFES/GregFES.csproj patch
       continue-on-error: true
       
     - name: Apply Minor
       if: contains(steps.findPr.outputs.title, 'minor')
-      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj minor
+      run: dotnet version -f /a/GregFES/GregFES/GregFES/GregFES.csproj minor
       continue-on-error: true
       
     - name: Apply Major
       if: contains(steps.findPr.outputs.title, 'major')
-      run: dotnet version -f /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj major
+      run: dotnet version -f /a/GregFES/GregFES/GregFES/GregFES.csproj major
       continue-on-error: true
     
     - name: Set environmental variable for new version
-      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /home/runner/work/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
-    
-    - name: Install Zip dependencies
-      run: |
-        sudo apt update
-        sudo apt install zip unzip
+      run: echo ::set-env name=PROJECT_VERSION::$(dotnet version --project-file /a/GregFES/GregFES/GregFES/GregFES.csproj | grep -v v | tr -d "[:space:]")
     
     - name: Zip Release
       run: |
-        zip -r /home/runner/work/GregFES/GregFES/GregFES/release.zip /home/runner/work/GregFES/GregFES/GregFES/bin/Release/netcoreapp3.1/${{ matrix.os }}/publish/
-        mv /home/runner/work/GregFES/GregFES/GregFES/release.zip /home/runner/work/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
+        tar.exe -a -c -f /a/GregFES/GregFES/GregFES/release.zip /a/GregFES/GregFES/GregFES/bin/Release/netcoreapp3.1/${{ matrix.os }}/publish/
+        mv /a/GregFES/GregFES/GregFES/release.zip /a/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
     
     - name: Upload binaries to Release
       uses: softprops/action-gh-release@v1
       with:
-        files: /home/runner/work/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
+        files: /a/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
         tag_name: v${{ env.PROJECT_VERSION }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
