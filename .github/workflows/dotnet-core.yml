@@ -9,10 +9,10 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [win-x64, linux-x64, osx-x64]
+        os: [win-x64, win-x86]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,6 +23,6 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build -c Release -r ${{ matrix.os }} --no-restore
+      run: dotnet build -c "Debug and Test" -r ${{ matrix.os }}
     - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test --verbosity normal -c "Debug and Test"
