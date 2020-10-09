@@ -6,7 +6,7 @@ on:
 
 jobs:
   bump-version:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     continue-on-error: true
     steps:
     - uses: actions/checkout@v2
@@ -67,7 +67,7 @@ jobs:
     - name: Validate job
       run: echo 'valid'
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: [bump-version]
     strategy:
       matrix:
