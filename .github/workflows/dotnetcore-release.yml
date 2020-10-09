@@ -116,7 +116,7 @@ jobs:
     
     - name: Zip Release
       run: |
-        tar.exe -a -c -f /a/GregFES/GregFES/GregFES/release.zip /a/GregFES/GregFES/GregFES/bin/Release/netcoreapp3.1/${{ matrix.os }}/publish/
+        tar.exe -a -c -f /a/GregFES/GregFES/GregFES/release.zip /a/GregFES/GregFES/GregFES/bin/Release/netcoreapp3.1/${{ matrix.os }}/publish
         mv /a/GregFES/GregFES/GregFES/release.zip /a/GregFES/GregFES/GregFES/${{ matrix.os }}-v${{ env.PROJECT_VERSION }}.zip
     
     - name: Upload binaries to Release
