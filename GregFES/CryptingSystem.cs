@@ -42,8 +42,11 @@ namespace GregFES
         {
             byte[] salt = GenerateRandomSalt();
             byte[] cryptType = new byte[4];
+            byte[] fileExtensionLength = new byte[1];
+            byte[] fileExtension = Encoding.ASCII.GetBytes(Path.GetExtension(inputFile));
+            fileExtensionLength[0] = Convert.ToByte(fileExtension.Length);
 
-            if(typeValue == type.Password)
+            if (typeValue == type.Password)
             {
                 cryptType = Encoding.UTF8.GetBytes("pass");
             }
@@ -52,7 +55,9 @@ namespace GregFES
                 cryptType = Encoding.UTF8.GetBytes("file");
             }
 
-            FileStream fsCrypt = new FileStream(inputFile + ".greg", FileMode.Create);
+            string newTmpFilePath = Path.ChangeExtension(inputFile, ".tmpgreg");
+
+            FileStream fsCrypt = new FileStream(newTmpFilePath, FileMode.Create);
 
             byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
 
@@ -69,6 +74,8 @@ namespace GregFES
 
             fsCrypt.Write(salt, 0, salt.Length);
             fsCrypt.Write(cryptType, 0, cryptType.Length);
+            fsCrypt.Write(fileExtensionLength, 0, fileExtensionLength.Length);
+            fsCrypt.Write(fileExtension, 0, fileExtension.Length);
 
             CryptoStream cs = new CryptoStream(fsCrypt, AES.CreateEncryptor(), CryptoStreamMode.Write);
 
@@ -94,9 +101,11 @@ namespace GregFES
             }
             finally
             {
+                string newFilePath = Path.ChangeExtension(inputFile, ".greg");
                 cs.Close();
                 fsCrypt.Close();
                 File.Delete(inputFile);
+                File.Move(newTmpFilePath, newFilePath);
                 MessageBox.Show("Votre fichier a été correctement chiffré !", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
@@ -106,10 +115,17 @@ namespace GregFES
             byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
             byte[] salt = new byte[32];
             byte[] cryptType = new byte[4];
+            byte[] fileExtensionLength = new byte[1];
+            string newTmpFile = Path.ChangeExtension(outputFile, ".tmpgreg");
 
             FileStream fsCrypt = new FileStream(inputFile, FileMode.Open);
             fsCrypt.Read(salt, 0, salt.Length);
             fsCrypt.Read(cryptType, 0, cryptType.Length);
+            fsCrypt.Read(fileExtensionLength, 0, 1);
+            byte[] fileExtension = new byte[Convert.ToInt32(fileExtensionLength[0])];
+            fsCrypt.Read(fileExtension, 0, fileExtension.Length);
+
+            outputFile += Encoding.ASCII.GetString(fileExtension);
 
             RijndaelManaged AES = new RijndaelManaged();
             AES.KeySize = 256;
@@ -122,7 +138,7 @@ namespace GregFES
 
             CryptoStream cs = new CryptoStream(fsCrypt, AES.CreateDecryptor(), CryptoStreamMode.Read);
 
-            FileStream fsOut = new FileStream(outputFile, FileMode.Create);
+            FileStream fsOut = new FileStream(newTmpFile, FileMode.Create);
 
             int read;
             byte[] buffer = new byte[1048576];
@@ -157,14 +173,15 @@ namespace GregFES
                 fsOut.Close();
                 fsCrypt.Close();
 
-                if (File.ReadAllText(outputFile) == "")
+                if (File.ReadAllText(newTmpFile) == "")
                 {
-                    File.Delete(outputFile);
+                    File.Delete(newTmpFile);
                     MessageBox.Show("Le mot de passe est incorrect !", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 else
                 {
                     File.Delete(inputFile);
+                    File.Move(newTmpFile, outputFile);
                     MessageBox.Show("Votre fichier a été correctement déchiffré !", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
